@@ -6,6 +6,7 @@ document.getElementById('btn_calculate_score').addEventListener('click', functio
     score += get_single_choice_score(10);
     score += get_multi_choices_score(10);
     score += get_judge_score(10);
+    score += get_simple_answer_score(20);
     document.getElementById('score').innerHTML = '得分：' + score;
 });
 
@@ -56,6 +57,15 @@ function get_judge_questions() {
 }
 
 /**
+ * 解析简答题.
+ *
+ * @returns {*[]}
+ */
+function get_simple_answer_questions() {
+    return ['简述什么是模型以及模型的表现形式？'];
+}
+
+/**
  * 解析填空题答案.
  * @returns {*[]}
  */
@@ -85,6 +95,14 @@ function get_multi_choices_answer() {
  */
 function get_judge_answer() {
     return [2, 1];
+}
+
+/**
+ * 解析简答题答案.
+ * @returns {*[]}
+ */
+function get_simple_answer_answer() {
+    return ['模型是对现实世界的简化和抽象，模型是对所研究的系统、过程、事物或概念的一种表达形式。可以是物理实体；可以是某种图形；或者是一种数学表达式。'];
 }
 
 function get_blank_score(each_score) {
@@ -165,6 +183,19 @@ function get_judge_score(each_score) {
     }
     return score;
 }
+
+function get_simple_answer_score(each_score) {
+    let score = 0;
+    let judge_answer = get_simple_answer_answer();
+    for (let i = 0; i < judge_answer.length; i++) {
+        let user_answer = document.getElementById(i + '_textarea');
+        if (user_answer === judge_answer[i]) {
+            score += each_score;
+        }
+    }
+    return score;
+}
+
 /**
  * 填空题块.
  * @returns {HTMLElement}
@@ -273,7 +304,34 @@ function add_judge_div() {
     return judge_div
 }
 
+
+/**
+ * 简答块
+ * @returns {HTMLDivElement}
+ */
+function add_simple_answer_div() {
+    let simple_answer_div = document.createElement('div');
+    let h2 = document.createElement('h2');
+    h2.innerHTML = '五、简答题（每题20分，共20分）';
+    simple_answer_div.appendChild(h2);
+    let questions = get_simple_answer_questions();
+    for (let i = 0; i < questions.length; i++) {
+        let p = document.createElement('p');
+        p.id = 'simple_answer_' + i;
+        let question = questions[i];
+        p.innerHTML = (i + 1) + '、' + question;
+        simple_answer_div.appendChild(p);
+        let textarea = document.createElement('textarea');
+        textarea.id = i + '_textarea';
+        textarea.rows = 10;
+        textarea.cols = 100;
+        simple_answer_div.appendChild(textarea);
+    }
+    return simple_answer_div
+}
+
 document.getElementById('content').appendChild(add_blank_div());
 document.getElementById('content').appendChild(add_single_choice_div());
 document.getElementById('content').appendChild(add_multi_choices_div());
 document.getElementById('content').appendChild(add_judge_div());
+document.getElementById('content').appendChild(add_simple_answer_div());
