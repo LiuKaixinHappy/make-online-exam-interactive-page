@@ -5,6 +5,7 @@ document.getElementById('btn_calculate_score').addEventListener('click', functio
     score += get_blank_score(5);
     score += get_single_choice_score(10);
     score += get_multi_choices_score(10);
+    score += get_judge_score(10);
     document.getElementById('score').innerHTML = '得分：' + score;
 });
 
@@ -18,7 +19,7 @@ function get_blank_questions() {
 }
 
 /**
- * 解析选择题.
+ * 解析单选题.
  * @returns {*[]}
  */
 function get_single_choice_questions() {
@@ -45,6 +46,16 @@ function get_multi_choices_questions() {
 }
 
 /**
+ * 解析判断题.
+ *
+ * @returns {*[]}
+ */
+function get_judge_questions() {
+    return ['用例图只是用于和客户交流和沟通的，用于确定需求。',
+        '在状态图中，终止状态在一个状态图中允许有任意多个。'];
+}
+
+/**
  * 解析填空题答案.
  * @returns {*[]}
  */
@@ -66,6 +77,14 @@ function get_single_choice_answer() {
  */
 function get_multi_choices_answer() {
     return [[1, 2, 4], [1, 2, 3]];
+}
+
+/**
+ * 解析判断题答案.
+ * @returns {*[]}
+ */
+function get_judge_answer() {
+    return [2, 1];
 }
 
 function get_blank_score(each_score) {
@@ -131,6 +150,21 @@ function get_multi_choices_score(each_score) {
     return score;
 }
 
+function get_judge_score(each_score) {
+    let score = 0;
+    let judge_answer = get_judge_answer();
+    for (let i = 0; i < judge_answer.length; i++) {
+        let choices = document.getElementsByName(i + '_judge');
+        let user_choice = get_user_choices(choices)[0];
+        if (user_choice === USER_DID_NOT_CHOOSE) {
+            score += 0;
+        }
+        if (user_choice === judge_answer[i] - 1) {
+            score += each_score;
+        }
+    }
+    return score;
+}
 /**
  * 填空题块.
  * @returns {HTMLElement}
@@ -217,6 +251,29 @@ function add_multi_choices_div() {
     return multi_choices_div
 }
 
+/**
+ * 判断块
+ * @returns {HTMLDivElement}
+ */
+function add_judge_div() {
+    let judge_div = document.createElement('div');
+    let h2 = document.createElement('h2');
+    h2.innerHTML = '四、判断题（每题10分，共20分）';
+    judge_div.appendChild(h2);
+    let questions = get_judge_questions();
+    for (let i = 0; i < questions.length; i++) {
+        let p = document.createElement('p');
+        p.id = 'judge_' + i;
+        let question = questions[i];
+        p.innerHTML = (i + 1) + '、' + question
+            + '<label><input type="radio" name=' + i + '_judge value=' + i + '>√</label>'
+            + '<label><input type="radio" name=' + i + '_judge value=' + i + '>×</label>';
+        judge_div.appendChild(p);
+    }
+    return judge_div
+}
+
 document.getElementById('content').appendChild(add_blank_div());
 document.getElementById('content').appendChild(add_single_choice_div());
 document.getElementById('content').appendChild(add_multi_choices_div());
+document.getElementById('content').appendChild(add_judge_div());
