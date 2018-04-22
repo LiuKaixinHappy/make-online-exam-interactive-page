@@ -1,7 +1,10 @@
+const USER_DID_NOT_CHOOSE = -1;
+
 document.getElementById('btn_calculate_score').addEventListener('click', function () {
     let score = 0;
     score += get_blank_score(5);
     score += get_single_choice_score(10);
+    score += get_multi_choices_score(10);
     document.getElementById('score').innerHTML = '得分：' + score;
 });
 
@@ -28,6 +31,20 @@ function get_single_choice_questions() {
 }
 
 /**
+ * 解析多选题.
+ *
+ * @returns {*[]}
+ */
+function get_multi_choices_questions() {
+    return [['用例的粒度分为以下哪三种：',
+        '(A)概述级', '(B)需求级',
+        '(C)用户目标级', '(D)子功能级'],
+        ['类图由以下哪三部分组成：',
+            '(A)名称（Name）', '(B)属性（Attribute）',
+            '(C)操作（Operation）', '(D)方法（Function）']];
+}
+
+/**
  * 解析填空题答案.
  * @returns {*[]}
  */
@@ -35,13 +52,20 @@ function get_blank_answer() {
     return [['统一建模语言'], ['封装性', '继承性', '多态性']];
 }
 
-const USER_DID_NOT_CHOOSE = -1;
 /**
- * 解析选择题答案.
+ * 解析单选题答案.
  * @returns {*[]}
  */
 function get_single_choice_answer() {
     return [2, 1];
+}
+
+/**
+ * 解析多选题答案.
+ * @returns {*[]}
+ */
+function get_multi_choices_answer() {
+    return [[1, 2, 4], [1, 2, 3]];
 }
 
 function get_blank_score(each_score) {
@@ -58,13 +82,14 @@ function get_blank_score(each_score) {
     return score;
 }
 
-function get_user_choice(choices) {
+function get_user_choices(choices) {
+    let user_choices = [];
     for (let j = 0; j < choices.length; j++) {
         if (choices[j].checked) {
-            return j;
+            user_choices.push(j);
         }
     }
-    return USER_DID_NOT_CHOOSE;
+    return user_choices.length === 0 ? [USER_DID_NOT_CHOOSE] : user_choices;
 }
 
 function get_single_choice_score(each_score) {
@@ -72,11 +97,34 @@ function get_single_choice_score(each_score) {
     let single_choice_answer = get_single_choice_answer();
     for (let i = 0; i < single_choice_answer.length; i++) {
         let choices = document.getElementsByName(i + '_radio');
-        let user_choice = get_user_choice(choices);
+        let user_choice = get_user_choices(choices)[0];
         if (user_choice === USER_DID_NOT_CHOOSE) {
             score += 0;
         }
         if (user_choice === single_choice_answer[i] - 1) {
+            score += each_score;
+        }
+    }
+    return score;
+}
+
+function get_multi_choices_score(each_score) {
+    let score = 0;
+    let multi_choices_answer = get_multi_choices_answer();
+    for (let i = 0; i < multi_choices_answer.length; i++) {
+        let choices = document.getElementsByName(i + '_checkbox');
+        let user_choices = get_user_choices(choices);
+        let right = true;
+        if (user_choices[0] === USER_DID_NOT_CHOOSE) {
+            score += 0;
+            continue;
+        }
+        for (let j = 0; j < multi_choices_answer[i].length; j++) {
+            if (user_choices[j] !== multi_choices_answer[i][j] - 1) {
+                right = false;
+            }
+        }
+        if (right) {
             score += each_score;
         }
     }
@@ -117,7 +165,10 @@ function add_blank_div() {
     return blank_div
 }
 
-
+/**
+ * 单题块.
+ * @returns {HTMLDivElement}
+ */
 function add_single_choice_div() {
     let single_choice_div = document.createElement('div');
     let h2 = document.createElement('h2');
@@ -140,5 +191,32 @@ function add_single_choice_div() {
     return single_choice_div
 }
 
+/**
+ * 多选题块
+ * @returns {HTMLDivElement}
+ */
+function add_multi_choices_div() {
+    let multi_choices_div = document.createElement('div');
+    let h2 = document.createElement('h2');
+    h2.innerHTML = '三、多选题（每题10分，共20分）';
+    multi_choices_div.appendChild(h2);
+    let questions = get_multi_choices_questions();
+    for (let i = 0; i < questions.length; i++) {
+        let p = document.createElement('p');
+        p.id = 'multi_choices_' + i;
+        let question = questions[i];
+        p.innerHTML = (i + 1) + '、' + question[0] + '<br>';
+        multi_choices_div.appendChild(p);
+        for (let j = 1; j < question.length; j++) {
+            let label = document.createElement('label');
+            label.innerHTML = '<input type="checkbox" name=' + i + '_checkbox' + ' value=' + j + '>'
+                + question[j] + '<br>';
+            multi_choices_div.appendChild(label);
+        }
+    }
+    return multi_choices_div
+}
+
 document.getElementById('content').appendChild(add_blank_div());
 document.getElementById('content').appendChild(add_single_choice_div());
+document.getElementById('content').appendChild(add_multi_choices_div());
